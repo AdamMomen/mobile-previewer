@@ -166,6 +166,9 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            ndk {
+                abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+            }
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
@@ -174,6 +177,9 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
 signingConfig signingConfigs.release
+            ndk {
+                abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+            }
         }
     }
     // applicationVariants are e.g. debug, release
@@ -188,6 +194,25 @@ signingConfig signingConfigs.release
                         versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
             }
 
+        }
+    }
+    packagingOptions {
+        doNotStrip "**/*.so"
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libfabricjni.so'
+        pickFirst '**/libjsc.so'
+        pickFirst '**/libjsinspector.so'
+        pickFirst '**/libhermes.so'
+    }
+
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
+
+    // Completely disable native library stripping
+    tasks.all { task ->
+        if (task.name.contains('stripDebugDebugSymbols')) {
+            task.enabled = false
         }
     }
 }
